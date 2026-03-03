@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="V008-1" author="shop">
+        <comment>Seed products matching CRM demo data (same SKUs for Kafka matching)</comment>
+        <sql splitStatements="true">
+            INSERT INTO products (id, crm_product_id, name, description, sku, price, unit, image_url, category, is_active, stock_quantity) VALUES
+            -- Услуги разработки
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000001', 'Разработка веб-приложения', 'Создание веб-приложения под ключ на React + Spring Boot. Включает проектирование архитектуры, разработку backend и frontend, интеграцию с внешними сервисами, тестирование и деплой.', 'SRV-WEB-001', 350000.00, 'усл.', 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400', 'Разработка', true, 50),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000002', 'Мобильное приложение iOS/Android', 'Кросс-платформенная разработка на Flutter. Дизайн UI/UX, разработка, публикация в App Store и Google Play.', 'SRV-MOB-001', 480000.00, 'усл.', 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400', 'Разработка', true, 30),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000003', 'Разработка API', 'REST API с документацией Swagger, авторизация JWT, интеграция с базами данных и внешними сервисами.', 'SRV-API-001', 120000.00, 'усл.', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400', 'Разработка', true, 80),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000004', 'Аудит безопасности', 'Пентест, поиск уязвимостей, полный отчёт с рекомендациями по устранению. Сертифицированные специалисты.', 'SRV-SEC-001', 95000.00, 'усл.', 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400', 'Безопасность', true, 40),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000005', 'Техническая поддержка 24/7', 'Мониторинг и поддержка ИТ-инфраструктуры. Время реакции — 15 минут. Резервное копирование включено.', 'SRV-SUP-001', 45000.00, 'мес.', 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400', 'Поддержка', true, 100),
+
+            -- Cloud / DevOps
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000006', 'Настройка Kubernetes кластера', 'k3s/k8s production setup с мониторингом Prometheus + Grafana, настройка Ingress, TLS, автоскейлинг.', 'SRV-K8S-001', 85000.00, 'усл.', 'https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=400', 'DevOps', true, 60),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000007', 'CI/CD пайплайн', 'GitHub Actions / GitLab CI, деплой в облако. Автотесты, линтеры, автоматические релизы.', 'SRV-CICD-001', 60000.00, 'усл.', 'https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=400', 'DevOps', true, 70),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000008', 'Облачный хостинг (Яндекс Облако)', 'Managed Kubernetes + PostgreSQL + S3. Мониторинг, резервное копирование, SLA 99.9%.', 'SRV-CLOUD-001', 28000.00, 'мес.', 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=400', 'Cloud', true, 200),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000009', 'VPN корпоративный', 'WireGuard VPN для компании, до 50 пользователей. Настройка и поддержка.', 'SRV-VPN-001', 15000.00, 'мес.', 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400', 'Безопасность', true, 150),
+
+            -- Лицензии
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000010', 'Лицензия CRM (1 год)', 'Облачная CRM система, до 10 пользователей. Обновления и поддержка включены.', 'LIC-CRM-001', 72000.00, 'год', 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400', 'Лицензии', true, 500),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000011', 'Лицензия CRM Enterprise', 'Неограниченные пользователи, API доступ, SLA 99.9%, выделенный менеджер.', 'LIC-CRM-ENT', 240000.00, 'год', 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400', 'Лицензии', true, 200),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000012', 'Антивирус корпоративный', 'Dr.Web Enterprise Security Suite, 25 ПК. Централизованное управление, обновления.', 'LIC-AV-001', 18500.00, 'год', 'https://images.unsplash.com/photo-1563206767-5b18f218e8de?w=400', 'Безопасность', true, 300),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000013', 'Microsoft 365 Business', 'Почта + Teams + Office, 1 пользователь. Облачное хранилище 1TB.', 'LIC-M365-001', 7200.00, 'год', 'https://images.unsplash.com/photo-1633419461186-7d40a38105ec?w=400', 'Лицензии', true, 1000),
+
+            -- Оборудование
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000014', 'Сервер HPE ProLiant DL380', '2x Xeon Gold, 256 GB RAM, 4x 1.8TB NVMe. Гарантия 3 года. Доставка и монтаж.', 'HW-SRV-001', 890000.00, 'шт', 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400', 'Серверы', true, 10),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000015', 'Коммутатор Cisco Catalyst', '48 портов PoE+, управляемый. Стекирование, QoS, VLAN.', 'HW-SW-001', 145000.00, 'шт', 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=400', 'Сетевое оборудование', true, 25),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000016', 'Межсетевой экран Fortinet', 'FortiGate 100F, до 500 пользователей. IPS, антивирус, VPN.', 'HW-FW-001', 215000.00, 'шт', 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400', 'Безопасность', true, 15),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000017', 'UPS APC Smart-UPS 3000VA', 'Трёхфазный ИБП для серверной комнаты. LCD дисплей, сетевое управление.', 'HW-UPS-001', 68000.00, 'шт', 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400', 'Оборудование', true, 20),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000018', 'Рабочая станция (сборка)', 'Core i7-14700, 32GB, 1TB NVMe, RTX 4060. Сборка, установка ОС, гарантия.', 'HW-PC-001', 115000.00, 'шт', 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=400', 'Компьютеры', true, 35),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000019', 'Ноутбук Lenovo ThinkPad X1', 'i7, 16GB, 512GB SSD, 14" IPS. Корпоративный класс, 3 года гарантии.', 'HW-LT-001', 145000.00, 'шт', 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400', 'Компьютеры', true, 40),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000020', 'NAS Synology DS923+', 'Сетевое хранилище, 4 отсека. RAID, облачная синхронизация, видеонаблюдение.', 'HW-NAS-001', 55000.00, 'шт', 'https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=400', 'Хранение данных', true, 30),
+
+            -- Консалтинг
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000021', 'ИТ-консалтинг', 'Аудит и оптимизация ИТ-инфраструктуры. Рекомендации, план развития, бюджетирование.', 'CON-IT-001', 8500.00, 'час', 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400', 'Консалтинг', true, 500),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000022', 'Обучение сотрудников', 'Обучение работе с корпоративным ПО, группа до 10 чел. Теория + практика.', 'CON-EDU-001', 35000.00, 'день', 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400', 'Консалтинг', true, 200),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000023', 'Внедрение 1С:Предприятие', 'Настройка, перенос данных, обучение. Полный цикл внедрения 1С.', 'CON-1C-001', 180000.00, 'усл.', 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400', 'Консалтинг', true, 100),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000024', 'Резервное копирование', 'Настройка backup в облако, тестирование восстановления. Полный план DR.', 'SRV-BCK-001', 25000.00, 'усл.', 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400', 'Поддержка', true, 150),
+            (uuid_generate_v4(), 'a1000000-0000-0000-0000-000000000025', 'SEO-оптимизация сайта', 'Технический SEO, контентная стратегия, 3 месяца. Ежемесячные отчёты.', 'SRV-SEO-001', 55000.00, 'усл.', 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=400', 'Маркетинг', true, 80);
+        </sql>
+    </changeSet>
+</databaseChangeLog>

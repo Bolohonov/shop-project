@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="V005-1" author="shop">
+        <comment>Shop orders</comment>
+        <createTable tableName="orders">
+            <column name="id" type="UUID" defaultValueComputed="uuid_generate_v4()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_order_user" references="users(id)"/>
+            </column>
+            <!-- Человекочитаемый номер: SHOP-00001 -->
+            <column name="order_number" type="VARCHAR(30)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="status" type="VARCHAR(30)" defaultValue="NEW"
+                    remarks="NEW, PICKING, SHIPPED, DELIVERED, ARCHIVED, CANCELLED">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_amount" type="NUMERIC(14,2)" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comment" type="TEXT"/>
+            <!-- UUID для Kafka idempotency -->
+            <column name="shop_order_uuid" type="UUID" defaultValueComputed="uuid_generate_v4()">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <!-- ID заказа в CRM (заполняется когда CRM подтвердит) -->
+            <column name="crm_order_id" type="UUID"/>
+            <column name="created_at" type="TIMESTAMPTZ" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMPTZ" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="orders" indexName="idx_orders_user_id">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="orders" indexName="idx_orders_status">
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="orders" indexName="idx_orders_shop_uuid">
+            <column name="shop_order_uuid"/>
+        </createIndex>
+
+        <sql>
+            -- Sequence for human-readable order numbers
+            CREATE SEQUENCE order_number_seq START WITH 1 INCREMENT BY 1;
+
+            CREATE TRIGGER trg_orders_updated_at BEFORE UPDATE ON orders
+            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+        </sql>
+    </changeSet>
+
+    <changeSet id="V005-2" author="shop">
+        <comment>Order items</comment>
+        <createTable tableName="order_items">
+            <column name="id" type="UUID" defaultValueComputed="uuid_generate_v4()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="order_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_oi_order" references="orders(id)" deleteCascade="true"/>
+            </column>
+            <column name="product_id" type="UUID">
+                <constraints foreignKeyName="fk_oi_product" references="products(id)"/>
+            </column>
+            <!-- Денормализованные поля на момент заказа -->
+            <column name="product_name" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_sku" type="VARCHAR(100)"/>
+            <column name="product_image_url" type="VARCHAR(1000)"/>
+            <column name="quantity" type="INTEGER" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="NUMERIC(14,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_price" type="NUMERIC(14,2)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="order_items" indexName="idx_oi_order_id">
+            <column name="order_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="V005-3" author="shop">
+        <comment>Order status history for tracking</comment>
+        <createTable tableName="order_status_history">
+            <column name="id" type="UUID" defaultValueComputed="uuid_generate_v4()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="order_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_osh_order" references="orders(id)" deleteCascade="true"/>
+            </column>
+            <column name="previous_status" type="VARCHAR(30)"/>
+            <column name="new_status" type="VARCHAR(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="changed_by" type="VARCHAR(200)"/>
+            <column name="comment" type="TEXT"/>
+            <column name="changed_at" type="TIMESTAMPTZ" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="order_status_history" indexName="idx_osh_order_id">
+            <column name="order_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

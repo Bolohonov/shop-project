@@ -1,0 +1,60 @@
+replicaCount: 1
+registry: "localhost:5000"
+
+backend:
+  image:
+    repository: shop-backend
+    tag: latest
+    pullPolicy: Always
+  service:
+    port: 8081
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    JWT_SECRET: "GENERATE_WITH_openssl_rand_base64_48"
+    JWT_EXPIRATION_MS: "900000"
+    FRONTEND_URL: "https://bolohonovma.online/shop"
+    APP_BASE_URL: "https://bolohonovma.online/shop/api/v1"
+    MAIL_HOST: "smtp.yandex.ru"
+    MAIL_PORT: "465"
+    MAIL_USERNAME: "your-email"
+    MAIL_PASSWORD: "your-email-password"
+    MAIL_FROM: "your-email"
+
+frontend:
+  image:
+    repository: shop-frontend
+    tag: latest
+    pullPolicy: Always
+
+ingress:
+  enabled: true
+  className: traefik
+  host: bolohonovma.online
+  basePath: "/shop"
+  tls:
+    enabled: false
+    secretName: ""
+
+postgresql:
+  enabled: false
+  host: "172.17.0.1"
+  port: 5432
+  database: "shop_db"
+  username: "shop_user"
+  password: "CHANGE_ME"
+
+redis:
+  enabled: false
+  host: "172.17.0.1"
+  port: 6379
+  password: "CHANGE_ME"
+
+kafka:
+  enabled: false
+  bootstrapServers: "172.17.0.1:9092"

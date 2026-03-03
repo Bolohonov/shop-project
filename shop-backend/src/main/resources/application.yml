@@ -1,0 +1,147 @@
+spring:
+  application:
+    name: shop-backend
+
+  # ── DATABASE ─────────────────────────────────────────────────
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:shop_db}
+    username: ${DB_USERNAME:shop_user}
+    password: ${DB_PASSWORD:shop_pass}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: ShopHikariPool
+      maximum-pool-size: 15
+      minimum-idle: 3
+      connection-timeout: 30000
+
+  # ── LIQUIBASE ────────────────────────────────────────────────
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+
+  # ── REDIS ────────────────────────────────────────────────────
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 1
+
+  # ── EMAIL ────────────────────────────────────────────────────
+  mail:
+    host: ${MAIL_HOST:smtp.yandex.ru}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME:noreply@example.com}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp:
+        auth: true
+        ssl.enable: true
+        starttls.enable: false
+
+  # ── KAFKA ────────────────────────────────────────────────────
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 1
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:shop-backend}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      enable-auto-commit: false
+      max-poll-records: 10
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: "com.shop.kafka.dto"
+        spring.json.use.type.headers: false
+    listener:
+      ack-mode: MANUAL_IMMEDIATE
+
+  # ── JSON ─────────────────────────────────────────────────────
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+    time-zone: UTC
+
+# ── SERVER ───────────────────────────────────────────────────
+server:
+  port: ${SERVER_PORT:8081}
+  servlet:
+    context-path: /api/v1
+
+# ── ACTUATOR ─────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# ── APP CONFIG ───────────────────────────────────────────────
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8081}
+  frontend-url: ${FRONTEND_URL:http://localhost:5174}
+
+  jwt:
+    secret: ${JWT_SECRET:shop-secret-change-me-in-production-min-32-chars!!}
+    access-token-expiration: 900       # 15 минут
+    refresh-token-expiration: 604800   # 7 дней
+
+  email:
+    from: ${MAIL_FROM:noreply@shop.local}
+    from-name: "Online Shop"
+
+  cors:
+    allowed-origins:
+      - ${FRONTEND_URL:http://localhost:5174}
+      - http://localhost:3000
+
+  kafka:
+    topics:
+      # Магазин → CRM: новый заказ
+      shop-order-created: ${KAFKA_TOPIC_SHOP_ORDER_CREATED:shop.orders.created}
+      # CRM → Магазин: смена статуса заказа
+      crm-order-status-changed: ${KAFKA_TOPIC_CRM_STATUS_CHANGED:crm.orders.status_changed}
+      # CRM → Магазин: синхронизация каталога товаров
+      crm-products-sync: ${KAFKA_TOPIC_PRODUCTS_SYNC:crm.products.sync}
+    outbox-poll-interval-ms: ${APP_KAFKA_OUTBOX_POLL_INTERVAL_MS:5000}
+
+  redis:
+    product-cache-ttl-minutes: ${PRODUCT_CACHE_TTL:60}
+
+  payment:
+    default-balance: ${DEFAULT_USER_BALANCE:1000000.00}
+
+logging:
+  level:
+    com.shop: DEBUG
+    org.springframework.security: INFO
+    org.springframework.kafka: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    try-it-out-enabled: true

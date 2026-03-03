@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="V003-1" author="shop">
+        <comment>Products catalog (synced from CRM via Kafka crm.products.sync)</comment>
+        <createTable tableName="products">
+            <column name="id" type="UUID" defaultValueComputed="uuid_generate_v4()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <!-- crm_product_id — ID товара в CRM для трассировки -->
+            <column name="crm_product_id" type="UUID" remarks="ID товара в CRM-системе">
+                <constraints unique="true"/>
+            </column>
+            <column name="name" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="sku" type="VARCHAR(100)">
+                <constraints unique="true"/>
+            </column>
+            <column name="price" type="NUMERIC(14,2)" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="unit" type="VARCHAR(20)" defaultValue="шт"/>
+            <column name="image_url" type="VARCHAR(1000)" remarks="URL картинки товара"/>
+            <column name="category" type="VARCHAR(200)" remarks="Категория товара для фильтрации"/>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="stock_quantity" type="INTEGER" defaultValueNumeric="100"
+                    remarks="Остаток на складе (для магазина)"/>
+            <column name="created_at" type="TIMESTAMPTZ" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMPTZ" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="products" indexName="idx_shop_products_active">
+            <column name="is_active"/>
+        </createIndex>
+        <createIndex tableName="products" indexName="idx_shop_products_category">
+            <column name="category"/>
+        </createIndex>
+
+        <sql>
+            CREATE INDEX idx_shop_products_fts ON products
+                USING gin(to_tsvector('russian',
+                    coalesce(name,'') || ' ' || coalesce(sku,'') || ' ' || coalesce(description,'')));
+
+            CREATE TRIGGER trg_products_updated_at BEFORE UPDATE ON products
+            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+        </sql>
+    </changeSet>
+</databaseChangeLog>

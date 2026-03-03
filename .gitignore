@@ -1,0 +1,27 @@
+# Build artifacts
+/shop-backend/target/
+
+# Node / Frontend
+node_modules/
+dist/
+.DS_Store
+
+# Environment и секреты - никогда в git
+.env
+.env.local
+.env.prod
+.env.*
+!.env.example
+
+# Helm values с секретами
+values.prod.yaml
+values.*.yaml
+!values.example.yaml
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Docker
+.dockerignore
