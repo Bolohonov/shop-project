@@ -132,7 +132,7 @@ public class ProductService {
         } catch (Exception e) { log.debug("Cache invalidation error: {}", e.getMessage()); }
     }
 
-    Product findEntityById(UUID id) {
+    public Product findEntityById(UUID id) {
         return productRepo.findById(id).orElseThrow(() -> AppException.notFound("Товар"));
     }
 
