@@ -22,14 +22,15 @@ public class ShopOrderProducer {
             String payload = objectMapper.writeValueAsString(event);
             String key = event.getShopOrderUuid().toString();
             outboxRepo.save(KafkaOutbox.builder()
-                .id(UUID.randomUUID())
-                .topic(props.getKafka().getTopics().getShopOrderCreated())
-                .messageKey(key)
-                .payload(payload)
-                .status("PENDING")
-                .createdAt(Instant.now())
-                .attemptCount(0)
-                .build());
+                    .id(UUID.randomUUID())
+                    .topic(props.getKafka().getTopics().getShopOrderCreated())
+                    .messageKey(key)
+                    .payload(payload)
+                    .status("PENDING")
+                    .createdAt(Instant.now())
+                    .attemptCount(0)
+                    .isNew(true)
+                    .build());
             log.info("Outbox enqueued order: shopOrderId={} uuid={}", event.getShopOrderId(), event.getShopOrderUuid());
         } catch (Exception e) {
             throw new IllegalStateException("Failed to serialize ShopOrderCreatedEvent", e);
