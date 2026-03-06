@@ -118,8 +118,9 @@ app:
       - http://localhost:3000
 
   kafka:
+    crm-tenant-schema: ${CRM_TENANT_SCHEMA:tenant_shop}
     topics:
-      crm-tenant-schema: ${CRM_TENANT_SCHEMA:tenant_shop}
+      crm-tenant-created: ${KAFKA_TOPIC_CRM_TENANT_CREATED:crm.tenant.created}
       # Магазин → CRM: новый заказ
       shop-order-created: ${KAFKA_TOPIC_SHOP_ORDER_CREATED:shop.orders.created}
       # CRM → Магазин: смена статуса заказа
