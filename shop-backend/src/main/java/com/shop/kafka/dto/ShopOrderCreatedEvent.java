@@ -13,6 +13,8 @@ import java.util.UUID;
 public class ShopOrderCreatedEvent {
     private String shopOrderId;
     private UUID shopOrderUuid;
+    /** Схема тенанта CRM — определяет в какой тенант писать заказ */
+    private String tenantSchema;
     private CustomerInfo customer;
     private List<ItemInfo> items;
     private BigDecimal totalAmount;

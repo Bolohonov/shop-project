@@ -4,6 +4,7 @@ import com.shop.auth.entity.User;
 import com.shop.cart.entity.CartItem;
 import com.shop.cart.service.CartService;
 import com.shop.common.exception.AppException;
+import com.shop.common.config.AppProperties;
 import com.shop.kafka.dto.ShopOrderCreatedEvent;
 import com.shop.kafka.producer.ShopOrderProducer;
 import com.shop.order.dto.*;
@@ -31,14 +32,15 @@ public class OrderService {
     private final PaymentService paymentService;
     private final ShopOrderProducer kafkaProducer;
     private final SseService sseService;
+    private final AppProperties props;
 
     private static final Map<String, String> STATUS_LABELS = Map.of(
-        "NEW", "Новый",
-        "PICKING", "Комплектуется",
-        "SHIPPED", "Отправлен",
-        "DELIVERED", "Получен",
-        "ARCHIVED", "Архив",
-        "CANCELLED", "Отменён"
+            "NEW", "Новый",
+            "PICKING", "Комплектуется",
+            "SHIPPED", "Отправлен",
+            "DELIVERED", "Получен",
+            "ARCHIVED", "Архив",
+            "CANCELLED", "Отменён"
     );
 
     @Transactional
@@ -56,26 +58,26 @@ public class OrderService {
             BigDecimal lineTotal = product.getPrice().multiply(BigDecimal.valueOf(ci.getQuantity()));
             total = total.add(lineTotal);
             orderItems.add(ShopOrderItem.builder()
-                .productId(product.getId())
-                .productName(product.getName())
-                .productSku(product.getSku())
-                .productImageUrl(product.getImageUrl())
-                .quantity(ci.getQuantity())
-                .price(product.getPrice())
-                .totalPrice(lineTotal)
-                .build());
+                    .productId(product.getId())
+                    .productName(product.getName())
+                    .productSku(product.getSku())
+                    .productImageUrl(product.getImageUrl())
+                    .quantity(ci.getQuantity())
+                    .price(product.getPrice())
+                    .totalPrice(lineTotal)
+                    .build());
             kafkaItems.add(ShopOrderCreatedEvent.ItemInfo.builder()
-                .sku(product.getSku())
-                .name(product.getName())
-                .quantity(BigDecimal.valueOf(ci.getQuantity()))
-                .price(product.getPrice())
-                .build());
+                    .sku(product.getSku())
+                    .name(product.getName())
+                    .quantity(BigDecimal.valueOf(ci.getQuantity()))
+                    .price(product.getPrice())
+                    .build());
         }
 
         // Check balance
         if (!paymentService.hasSufficientBalance(user.getId(), total))
             throw AppException.badRequest("Недостаточно средств на балансе. Текущий баланс: "
-                + paymentService.getBalance(user.getId()) + " ₽, необходимо: " + total + " ₽");
+                    + paymentService.getBalance(user.getId()) + " ₽, необходимо: " + total + " ₽");
 
         // Create order
         long seq = orderRepo.nextOrderNumber();
@@ -83,15 +85,15 @@ public class OrderService {
         UUID shopUuid = UUID.randomUUID();
 
         ShopOrder order = ShopOrder.builder()
-            .userId(user.getId())
-            .orderNumber(orderNumber)
-            .status("NEW")
-            .totalAmount(total)
-            .comment(comment)
-            .shopOrderUuid(shopUuid)
-            .createdAt(Instant.now())
-            .updatedAt(Instant.now())
-            .build();
+                .userId(user.getId())
+                .orderNumber(orderNumber)
+                .status("NEW")
+                .totalAmount(total)
+                .comment(comment)
+                .shopOrderUuid(shopUuid)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
         order = orderRepo.save(order);
 
         // Save items
@@ -102,9 +104,9 @@ public class OrderService {
 
         // Status history
         historyRepo.save(OrderStatusHistory.builder()
-            .orderId(order.getId()).newStatus("NEW")
-            .changedBy("system").comment("Заказ оформлен")
-            .changedAt(Instant.now()).build());
+                .orderId(order.getId()).newStatus("NEW")
+                .changedBy("system").comment("Заказ оформлен")
+                .changedAt(Instant.now()).build());
 
         // Charge payment
         paymentService.charge(user.getId(), order.getId(), total);
@@ -114,21 +116,22 @@ public class OrderService {
 
         // Send to CRM via Kafka (outbox)
         kafkaProducer.enqueueOrderCreated(ShopOrderCreatedEvent.builder()
-            .shopOrderId(orderNumber)
-            .shopOrderUuid(shopUuid)
-            .customer(ShopOrderCreatedEvent.CustomerInfo.builder()
-                .externalId(user.getId().toString())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .phone(user.getPhone())
-                .address(user.getAddress())
-                .build())
-            .items(kafkaItems)
-            .totalAmount(total)
-            .comment(comment)
-            .createdAt(Instant.now())
-            .build());
+                .shopOrderId(orderNumber)
+                .shopOrderUuid(shopUuid)
+                .customer(ShopOrderCreatedEvent.CustomerInfo.builder()
+                        .externalId(user.getId().toString())
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .email(user.getEmail())
+                        .phone(user.getPhone())
+                        .address(user.getAddress())
+                        .build())
+                .items(kafkaItems)
+                .totalAmount(total)
+                .comment(comment)
+                .createdAt(Instant.now())
+                .tenantSchema(props.getKafka().getCrmTenantSchema())
+                .build());
 
         log.info("Order created: {} total={} items={}", orderNumber, total, orderItems.size());
         return toResponse(order, true);
@@ -140,16 +143,16 @@ public class OrderService {
         var orders = orderRepo.findByUserId(userId, size, offset);
         long total = orderRepo.countByUserId(userId);
         return OrderPageResponse.builder()
-            .content(orders.stream().map(o -> toResponse(o, false)).toList())
-            .totalElements(total)
-            .totalPages((int) Math.ceil((double) total / size))
-            .page(page).size(size)
-            .build();
+                .content(orders.stream().map(o -> toResponse(o, false)).toList())
+                .totalElements(total)
+                .totalPages((int) Math.ceil((double) total / size))
+                .page(page).size(size)
+                .build();
     }
 
     public OrderResponse getOrder(UUID userId, UUID orderId) {
         ShopOrder order = orderRepo.findById(orderId)
-            .orElseThrow(() -> AppException.notFound("Заказ"));
+                .orElseThrow(() -> AppException.notFound("Заказ"));
         if (!order.getUserId().equals(userId))
             throw AppException.forbidden("Нет доступа к этому заказу");
         return toResponse(order, true);
@@ -157,38 +160,38 @@ public class OrderService {
 
     private OrderResponse toResponse(ShopOrder order, boolean withDetails) {
         var builder = OrderResponse.builder()
-            .id(order.getId())
-            .orderNumber(order.getOrderNumber())
-            .status(order.getStatus())
-            .statusLabel(STATUS_LABELS.getOrDefault(order.getStatus(), order.getStatus()))
-            .totalAmount(order.getTotalAmount())
-            .comment(order.getComment())
-            .shopOrderUuid(order.getShopOrderUuid())
-            .createdAt(order.getCreatedAt())
-            .updatedAt(order.getUpdatedAt());
+                .id(order.getId())
+                .orderNumber(order.getOrderNumber())
+                .status(order.getStatus())
+                .statusLabel(STATUS_LABELS.getOrDefault(order.getStatus(), order.getStatus()))
+                .totalAmount(order.getTotalAmount())
+                .comment(order.getComment())
+                .shopOrderUuid(order.getShopOrderUuid())
+                .createdAt(order.getCreatedAt())
+                .updatedAt(order.getUpdatedAt());
 
         if (withDetails) {
             builder.items(itemRepo.findByOrderId(order.getId()).stream()
-                .map(item -> OrderItemResponse.builder()
-                    .productId(item.getProductId())
-                    .productName(item.getProductName())
-                    .productSku(item.getProductSku())
-                    .productImageUrl(item.getProductImageUrl())
-                    .quantity(item.getQuantity())
-                    .price(item.getPrice())
-                    .totalPrice(item.getTotalPrice())
-                    .build())
-                .toList());
+                    .map(item -> OrderItemResponse.builder()
+                            .productId(item.getProductId())
+                            .productName(item.getProductName())
+                            .productSku(item.getProductSku())
+                            .productImageUrl(item.getProductImageUrl())
+                            .quantity(item.getQuantity())
+                            .price(item.getPrice())
+                            .totalPrice(item.getTotalPrice())
+                            .build())
+                    .toList());
             builder.statusHistory(historyRepo.findByOrderId(order.getId()).stream()
-                .map(h -> StatusHistoryResponse.builder()
-                    .previousStatus(h.getPreviousStatus())
-                    .newStatus(h.getNewStatus())
-                    .newStatusLabel(STATUS_LABELS.getOrDefault(h.getNewStatus(), h.getNewStatus()))
-                    .changedBy(h.getChangedBy())
-                    .comment(h.getComment())
-                    .changedAt(h.getChangedAt())
-                    .build())
-                .toList());
+                    .map(h -> StatusHistoryResponse.builder()
+                            .previousStatus(h.getPreviousStatus())
+                            .newStatus(h.getNewStatus())
+                            .newStatusLabel(STATUS_LABELS.getOrDefault(h.getNewStatus(), h.getNewStatus()))
+                            .changedBy(h.getChangedBy())
+                            .comment(h.getComment())
+                            .changedAt(h.getChangedAt())
+                            .build())
+                    .toList());
         }
         return builder.build();
     }

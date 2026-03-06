@@ -119,6 +119,7 @@ app:
 
   kafka:
     topics:
+      crm-tenant-schema: ${CRM_TENANT_SCHEMA:tenant_shop}
       # Магазин → CRM: новый заказ
       shop-order-created: ${KAFKA_TOPIC_SHOP_ORDER_CREATED:shop.orders.created}
       # CRM → Магазин: смена статуса заказа

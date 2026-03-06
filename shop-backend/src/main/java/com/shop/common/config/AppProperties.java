@@ -28,6 +28,8 @@ public class AppProperties {
     @Data public static class Kafka {
         private Topics topics = new Topics();
         private long outboxPollIntervalMs = 5000;
+        /** Схема тенанта CRM для этого магазина */
+        private String crmTenantSchema = "tenant_shop";
         @Data public static class Topics {
             private String shopOrderCreated = "shop.orders.created";
             private String crmOrderStatusChanged = "crm.orders.status_changed";
