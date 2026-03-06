@@ -11,6 +11,7 @@ import com.shop.auth.repository.UserRepository;
 import com.shop.common.config.AppProperties;
 import com.shop.common.exception.AppException;
 import com.shop.payment.service.PaymentService;
+import com.shop.kafka.repository.PendingCrmTenantRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +28,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AppProperties props;
     private final PaymentService paymentService;
+    private final PendingCrmTenantRepository pendingCrmTenantRepo;
 
     @Transactional
     public AuthResponse register(RegisterRequest req) {
@@ -34,25 +36,34 @@ public class AuthService {
             throw AppException.conflict("Пользователь с таким email уже существует");
 
         User user = User.builder()
-            .email(req.getEmail().toLowerCase().trim())
-            .passwordHash(passwordEncoder.encode(req.getPassword()))
-            .firstName(req.getFirstName())
-            .lastName(req.getLastName())
-            .phone(req.getPhone())
-            .address(req.getAddress())
-            .isActive(true)
-            .createdAt(Instant.now())
-            .updatedAt(Instant.now())
-            .build();
+                .email(req.getEmail().toLowerCase().trim())
+                .passwordHash(passwordEncoder.encode(req.getPassword()))
+                .firstName(req.getFirstName())
+                .lastName(req.getLastName())
+                .phone(req.getPhone())
+                .address(req.getAddress())
+                .isActive(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
         user = userRepo.save(user);
         paymentService.createBalance(user.getId());
+
+        // Проверяем не пришло ли событие crm.tenant.created до регистрации
+        final User savedUser = user;
+        pendingCrmTenantRepo.findByEmail(savedUser.getEmail()).ifPresent(pending -> {
+            userRepo.updateCrmTenantSchema(savedUser.getEmail(), pending.getTenantSchema());
+            pendingCrmTenantRepo.deleteByEmail(savedUser.getEmail());
+            log.info("Applied pending CRM tenant schema {} to new user {}", pending.getTenantSchema(), savedUser.getEmail());
+        });
+
         log.info("User registered: {}", user.getEmail());
         return buildAuthResponse(user);
     }
 
     public AuthResponse login(LoginRequest req) {
         User user = userRepo.findByEmail(req.getEmail().toLowerCase().trim())
-            .orElseThrow(() -> AppException.badRequest("Неверный email или пароль"));
+                .orElseThrow(() -> AppException.badRequest("Неверный email или пароль"));
         if (!passwordEncoder.matches(req.getPassword(), user.getPasswordHash()))
             throw AppException.badRequest("Неверный email или пароль");
         if (!user.isActive())
@@ -62,13 +73,13 @@ public class AuthService {
 
     public AuthResponse refresh(String refreshTokenStr) {
         RefreshToken rt = refreshRepo.findByToken(refreshTokenStr)
-            .orElseThrow(() -> AppException.badRequest("Невалидный refresh token"));
+                .orElseThrow(() -> AppException.badRequest("Невалидный refresh token"));
         if (rt.getExpiresAt().isBefore(Instant.now())) {
             refreshRepo.delete(rt);
             throw AppException.badRequest("Refresh token истёк");
         }
         User user = userRepo.findById(rt.getUserId())
-            .orElseThrow(() -> AppException.notFound("Пользователь"));
+                .orElseThrow(() -> AppException.notFound("Пользователь"));
         refreshRepo.delete(rt);
         return buildAuthResponse(user);
     }
@@ -77,7 +88,7 @@ public class AuthService {
 
     public UserInfo getMe(UUID userId) {
         User user = userRepo.findById(userId)
-            .orElseThrow(() -> AppException.notFound("Пользователь"));
+                .orElseThrow(() -> AppException.notFound("Пользователь"));
         return toUserInfo(user);
     }
 
@@ -86,11 +97,11 @@ public class AuthService {
         resp.setAccessToken(jwtService.generateAccessToken(user.getId(), user.getEmail()));
         String rt = jwtService.generateRefreshToken();
         RefreshToken entity = RefreshToken.builder()
-            .userId(user.getId())
-            .token(rt)
-            .expiresAt(Instant.now().plusSeconds(props.getJwt().getRefreshTokenExpiration()))
-            .createdAt(Instant.now())
-            .build();
+                .userId(user.getId())
+                .token(rt)
+                .expiresAt(Instant.now().plusSeconds(props.getJwt().getRefreshTokenExpiration()))
+                .createdAt(Instant.now())
+                .build();
         refreshRepo.save(entity);
         resp.setRefreshToken(rt);
         resp.setUser(toUserInfo(user));

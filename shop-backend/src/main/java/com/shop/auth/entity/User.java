@@ -24,4 +24,6 @@ public class User {
     private boolean isActive;
     private Instant createdAt;
     private Instant updatedAt;
+    /** Схема тенанта CRM — заполняется при получении события crm.tenant.created */
+    private String crmTenantSchema;
 }

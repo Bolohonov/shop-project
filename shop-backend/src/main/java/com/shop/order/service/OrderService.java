@@ -130,7 +130,9 @@ public class OrderService {
                 .totalAmount(total)
                 .comment(comment)
                 .createdAt(Instant.now())
-                .tenantSchema(props.getKafka().getCrmTenantSchema())
+                .tenantSchema(user.getCrmTenantSchema() != null
+                        ? user.getCrmTenantSchema()
+                        : props.getKafka().getCrmTenantSchema())
                 .build());
 
         log.info("Order created: {} total={} items={}", orderNumber, total, orderItems.size());

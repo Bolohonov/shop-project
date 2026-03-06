@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
 
     <include file="db/migration/V001__extensions.xml"/>
@@ -13,5 +13,7 @@
     <include file="db/migration/V006__payments.xml"/>
     <include file="db/migration/V007__kafka_outbox.xml"/>
     <include file="db/migration/V008__seed_products.xml"/>
+    <include file="db/migration/V009__users_crm_tenant_schema.xml"/>
+    <include file="db/migration/V010__pending_crm_tenants.xml"/>
 
 </databaseChangeLog>
