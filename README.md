@@ -26,8 +26,9 @@
 │     │              Apache Kafka                                       │       │
 │     │                                                                 │       │
 │     │  shop.orders.created ──────────────────▶  (CRM consumer)       │       │
-│     │  crm.orders.status_changed  ◀──────────  (CRM producer)       │       │
-│     │  crm.products.sync  ◀─────────────────  (CRM producer)        │       │
+│     │  crm.orders.status_changed  ◀──────────  (CRM producer)        │       │
+│     │  crm.products.sync  ◀─────────────────  (CRM producer)         │       │
+│     │  crm.tenant.created  ◀─────────────────  (CRM producer)        │       │
 │     └─────────────────────────────────────────────────────────────────┘       │
 └────────────────────────────────────┘     └────────────────────────────────────┘
 ```
@@ -39,6 +40,7 @@
 | `shop.orders.created` | Shop → CRM | Новый заказ из магазина |
 | `crm.orders.status_changed` | CRM → Shop | Смена статуса заказа |
 | `crm.products.sync` | CRM → Shop | Синхронизация каталога товаров |
+| `crm.tenant.created` | CRM → Shop | Привязка CRM-тенанта к пользователю магазина |
 
 ## Стек технологий
 
@@ -181,6 +183,77 @@ helm install shop shop-helm/ --namespace shop --create-namespace
    → Обновляет статус в shop.orders
    → SSE push клиенту (real-time)
    → Email уведомление
+```
+
+## Тестирование Kafka-интеграции (Shop ↔ CRM)
+
+Для полноценной проверки сквозного флоу Shop → CRM → Shop необходимо использовать **одинаковый email** при регистрации в обоих сервисах. Это связано с тем, что CRM при активации аккаунта отправляет событие `crm.tenant.created` с email администратора, а Shop по этому email привязывает CRM-тенант к пользователю магазина — чтобы заказы попадали в нужную CRM-схему.
+
+### Шаги для проверки
+
+**1. Регистрация в CRM**
+
+Зарегистрируйся на `https://bolohonovma.online/crm` (или через Swagger `/crm/api/v1/swagger-ui.html`):
+```json
+POST /auth/register
+{
+  "email": "your@email.com",
+  "password": "password123",
+  "firstName": "Имя",
+  "lastName": "Фамилия",
+  "phone": "+79001234567",
+  "userType": "ADMIN"
+}
+```
+Подтверди email по ссылке из письма. CRM опубликует событие `crm.tenant.created` в Kafka.
+
+**2. Регистрация в Shop с тем же email**
+
+Зарегистрируйся на `https://bolohonovma.online/shop` (или через Swagger `/shop/api/v1/swagger-ui.html`) используя **тот же email**:
+```json
+POST /auth/register
+{
+  "email": "your@email.com",
+  "password": "password123",
+  "firstName": "Имя",
+  "lastName": "Фамилия",
+  "phone": "+79001234567"
+}
+```
+Shop получит событие `crm.tenant.created` и запишет `crmTenantSchema` в профиль пользователя.
+
+> ⚠️ Порядок регистрации важен: сначала CRM, потом Shop. Если сначала зарегистрироваться в Shop — CRM-тенант будет сохранён в таблицу `pending_crm_tenants` и привяжется автоматически при получении события.
+
+**3. Оформление заказа в Shop**
+
+Залогинься в Shop, добавь товар в корзину и оформи заказ. Shop опубликует событие `shop.orders.created`.
+
+**4. Проверка в CRM**
+
+Залогинься в CRM — заказ должен появиться в разделе «Заказы» с привязанным клиентом (email покупателя).
+
+**5. Смена статуса в CRM → обновление в Shop**
+
+Измени статус заказа в CRM. Shop получит событие `crm.orders.status_changed` и обновит статус в реальном времени через SSE.
+
+### Диагностика
+
+```bash
+# Статус Kafka outbox в Shop
+docker exec postgres psql -U shop_user -d shop_db -c \
+  "SELECT topic, status, attempt_count FROM kafka_outbox ORDER BY created_at DESC LIMIT 5;"
+
+# Idempotency log в CRM (подтверждение получения заказа)
+docker exec postgres psql -U crm_user -d crm_db -c \
+  "SELECT shop_order_uuid, crm_order_id, processed_at FROM public.kafka_idempotency_log ORDER BY processed_at DESC LIMIT 5;"
+
+# CRM-тенант привязан к пользователю Shop
+docker exec postgres psql -U shop_user -d shop_db -c \
+  "SELECT email, crm_tenant_schema FROM public.users WHERE email = 'your@email.com';"
+
+# Consumer group lag
+docker exec shared-kafka /opt/kafka/bin/kafka-consumer-groups.sh \
+  --bootstrap-server localhost:9092 --group crm-backend --describe
 ```
 
 ## Демо-данные
