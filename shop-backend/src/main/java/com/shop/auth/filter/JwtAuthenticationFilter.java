@@ -24,16 +24,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
             throws ServletException, IOException {
+        String token = null;
+
         String header = req.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            if (jwtService.isValid(token)) {
-                UUID userId = jwtService.extractUserId(token);
-                userRepo.findById(userId).ifPresent(user -> {
-                    var auth = new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                });
-            }
+            token = header.substring(7);
+        } else if (req.getServletPath().contains("/events/subscribe")) {
+            token = req.getParameter("token");
+        }
+
+        if (token != null && jwtService.isValid(token)) {
+            UUID userId = jwtService.extractUserId(token);
+            userRepo.findById(userId).ifPresent(user -> {
+                var auth = new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            });
         }
         chain.doFilter(req, resp);
     }
