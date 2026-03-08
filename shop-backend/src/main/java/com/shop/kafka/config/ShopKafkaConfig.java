@@ -3,6 +3,7 @@ package com.shop.kafka.config;
 import com.shop.common.config.AppProperties;
 import com.shop.kafka.dto.OrderStatusChangedEvent;
 import com.shop.kafka.dto.ProductSyncEvent;
+import com.shop.kafka.dto.TenantCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -90,6 +91,24 @@ public class ShopKafkaConfig {
     @Bean public ConcurrentKafkaListenerContainerFactory<String, ProductSyncEvent>
     productSyncListenerFactory(ConsumerFactory<String, ProductSyncEvent> cf) {
         var factory = new ConcurrentKafkaListenerContainerFactory<String, ProductSyncEvent>();
+        factory.setConsumerFactory(cf);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(2000L, 3)));
+        return factory;
+    }
+
+    // ── Consumer for TenantCreated ──
+    @Bean public ConsumerFactory<String, TenantCreatedEvent> tenantCreatedConsumerFactory() {
+        Map<String, Object> props = new HashMap<>(springKafkaProps.buildConsumerProperties(null));
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        var deser = new ErrorHandlingDeserializer<>(new JsonDeserializer<>(TenantCreatedEvent.class, false));
+        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deser);
+    }
+
+    @Bean public ConcurrentKafkaListenerContainerFactory<String, TenantCreatedEvent>
+    tenantCreatedListenerFactory(ConsumerFactory<String, TenantCreatedEvent> cf) {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, TenantCreatedEvent>();
         factory.setConsumerFactory(cf);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
         factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(2000L, 3)));

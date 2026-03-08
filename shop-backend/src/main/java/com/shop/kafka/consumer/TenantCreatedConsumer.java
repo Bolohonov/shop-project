@@ -25,7 +25,7 @@ public class TenantCreatedConsumer {
     @KafkaListener(
             topics = "${app.kafka.topics.crm-tenant-created:crm.tenant.created}",
             groupId = "${spring.kafka.consumer.group-id}",
-            containerFactory = "statusListenerFactory"
+            containerFactory = "tenantCreatedListenerFactory"
     )
     @Transactional
     public void onTenantCreated(ConsumerRecord<String, TenantCreatedEvent> record, Acknowledgment ack) {
