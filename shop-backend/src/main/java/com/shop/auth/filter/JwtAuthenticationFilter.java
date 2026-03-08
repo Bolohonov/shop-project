@@ -1,6 +1,5 @@
 package com.shop.auth.filter;
 
-import com.shop.auth.entity.User;
 import com.shop.auth.repository.UserRepository;
 import com.shop.auth.service.JwtService;
 import jakarta.servlet.FilterChain;
