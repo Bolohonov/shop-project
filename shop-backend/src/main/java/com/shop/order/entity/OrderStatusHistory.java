@@ -8,12 +8,13 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table("order_status_history")
 public class OrderStatusHistory {
+    @EqualsAndHashCode.Include
     @Id private UUID id;
     private UUID orderId;
     private String previousStatus;

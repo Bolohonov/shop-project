@@ -8,12 +8,13 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table("order_items")
 public class ShopOrderItem {
+    @EqualsAndHashCode.Include
     @Id private UUID id;
     private UUID orderId;
     private UUID productId;

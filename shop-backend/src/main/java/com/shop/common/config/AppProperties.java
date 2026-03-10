@@ -1,12 +1,14 @@
 package com.shop.common.config;
+import lombok.Getter;
+import lombok.Setter;
 
-import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.List;
 
-@Data @Component
+@Getter
+@Setter @Component
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
     private String baseUrl;
@@ -18,24 +20,31 @@ public class AppProperties {
     private Redis redis = new Redis();
     private Payment payment = new Payment();
 
-    @Data public static class Jwt {
+    @Getter
+@Setter public static class Jwt {
         private String secret;
         private long accessTokenExpiration = 900;
         private long refreshTokenExpiration = 604800;
     }
-    @Data public static class Email { private String from; private String fromName; }
-    @Data public static class Cors { private List<String> allowedOrigins = List.of("http://localhost:5174"); }
-    @Data public static class Kafka {
+    @Getter
+@Setter public static class Email { private String from; private String fromName; }
+    @Getter
+@Setter public static class Cors { private List<String> allowedOrigins = List.of("http://localhost:5174"); }
+    @Getter
+@Setter public static class Kafka {
         private Topics topics = new Topics();
         private long outboxPollIntervalMs = 5000;
         /** Схема тенанта CRM для этого магазина */
         private String crmTenantSchema = "tenant_shop";
-        @Data public static class Topics {
+        @Getter
+@Setter public static class Topics {
             private String shopOrderCreated = "shop.orders.created";
             private String crmOrderStatusChanged = "crm.orders.status_changed";
             private String crmProductsSync = "crm.products.sync";
         }
     }
-    @Data public static class Redis { private int productCacheTtlMinutes = 60; }
-    @Data public static class Payment { private BigDecimal defaultBalance = new BigDecimal("1000000.00"); }
+    @Getter
+@Setter public static class Redis { private int productCacheTtlMinutes = 60; }
+    @Getter
+@Setter public static class Payment { private BigDecimal defaultBalance = new BigDecimal("1000000.00"); }
 }

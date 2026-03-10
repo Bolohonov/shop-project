@@ -1,8 +1,9 @@
 package com.shop.product.dto;
+import lombok.Getter;
+import lombok.Setter;
 
-import lombok.Data;
-
-@Data
+@Getter
+@Setter
 public class ProductSearchRequest {
     private String query;
     private String category;

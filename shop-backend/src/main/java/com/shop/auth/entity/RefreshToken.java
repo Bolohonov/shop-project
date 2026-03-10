@@ -8,12 +8,13 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table("refresh_tokens")
 public class RefreshToken {
+    @EqualsAndHashCode.Include
     @Id private UUID id;
     private UUID userId;
     private String token;

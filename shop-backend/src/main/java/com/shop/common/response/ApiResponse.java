@@ -1,9 +1,11 @@
 package com.shop.common.response;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 
-@Data @AllArgsConstructor
+@Getter
+@Setter @AllArgsConstructor
 public class ApiResponse<T> {
     private boolean success;
     private T data;

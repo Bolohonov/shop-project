@@ -9,12 +9,13 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table("orders")
 public class ShopOrder {
+    @EqualsAndHashCode.Include
     @Id private UUID id;
     private UUID userId;
     private String orderNumber;

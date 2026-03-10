@@ -9,12 +9,13 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table("products")
 public class Product {
+    @EqualsAndHashCode.Include
     @Id private UUID id;
     private UUID crmProductId;
     private String name;

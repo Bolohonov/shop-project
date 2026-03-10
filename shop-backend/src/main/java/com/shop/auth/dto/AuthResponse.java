@@ -1,8 +1,9 @@
 package com.shop.auth.dto;
+import lombok.Getter;
+import lombok.Setter;
 
-import lombok.Data;
-
-@Data
+@Getter
+@Setter
 public class AuthResponse {
     private String accessToken;
     private String refreshToken;

@@ -8,12 +8,13 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table("users")
 public class User {
+    @EqualsAndHashCode.Include
     @Id private UUID id;
     private String email;
     private String passwordHash;

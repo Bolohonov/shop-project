@@ -1,11 +1,13 @@
 package com.shop.auth.dto;
+import lombok.Getter;
+import lombok.Setter;
 
-import lombok.Data;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 public class UserInfo {
     private UUID id;
     private String email;

@@ -1,10 +1,12 @@
 package com.shop.product.dto;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.Builder;
-import lombok.Data;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @Builder
 public class ProductPageResponse {
     private List<ProductResponse> content;

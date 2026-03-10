@@ -9,12 +9,13 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table("user_balances")
 public class UserBalance {
+    @EqualsAndHashCode.Include
     @Id private UUID id;
     private UUID userId;
     private BigDecimal balance;
