@@ -17,6 +17,8 @@ spec:
       services:
         - name: {{ .Release.Name }}-backend
           port: {{ .Values.backend.service.port }}
+          responseForwarding:
+            flushInterval: 100ms
 
     # Backend API: /shop/api/v1/* -> strip /shop -> backend gets /api/v1/*
     - match: Host(`{{ .Values.ingress.host }}`) && PathPrefix(`{{ .Values.ingress.basePath }}/api`)
