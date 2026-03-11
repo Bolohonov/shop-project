@@ -43,5 +43,5 @@ export const useAuthStore = defineStore('auth', () => {
     if (localStorage.getItem('accessToken')) await fetchMe()
   }
 
-  return { user, isAuthenticated, token, login, register, logout, fetchMe, init }
+  return { user, isAuthenticated, token, login, register, logout, fetchMe, init, setAuth }
 })
