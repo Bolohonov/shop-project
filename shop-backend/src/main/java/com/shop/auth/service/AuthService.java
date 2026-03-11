@@ -22,6 +22,10 @@ import java.util.UUID;
 
 @Slf4j @Service @RequiredArgsConstructor
 public class AuthService {
+
+    public static final UUID   DEMO_USER_ID = UUID.fromString("dddddddd-0000-0000-0000-000000000001");
+    public static final String DEMO_EMAIL   = "demo@shop.local";
+
     private final UserRepository userRepo;
     private final RefreshTokenRepository refreshRepo;
     private final JwtService jwtService;
@@ -68,6 +72,15 @@ public class AuthService {
             throw AppException.badRequest("Неверный email или пароль");
         if (!user.isActive())
             throw AppException.forbidden("Аккаунт деактивирован");
+        return buildAuthResponse(user);
+    }
+
+    public AuthResponse demoLogin() {
+        User user = userRepo.findById(DEMO_USER_ID)
+                .orElseThrow(() -> AppException.notFound("Демо-пользователь не найден"));
+        if (!user.isActive())
+            throw AppException.forbidden("Демо временно недоступно");
+        log.info("Demo login");
         return buildAuthResponse(user);
     }
 

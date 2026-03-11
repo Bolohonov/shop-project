@@ -13,8 +13,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@RestController @RequestMapping("/auth") @RequiredArgsConstructor
+@RestController
+@RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthController {
+
     private final AuthService authService;
 
     @PostMapping("/register")
@@ -41,5 +44,10 @@ public class AuthController {
     @GetMapping("/me")
     public ApiResponse<UserInfo> me(@AuthenticationPrincipal User user) {
         return ApiResponse.ok(authService.getMe(user.getId()));
+    }
+
+    @PostMapping("/demo")
+    public ApiResponse<AuthResponse> demo() {
+        return ApiResponse.ok(authService.demoLogin());
     }
 }
