@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <!--
+        V011 — Demo пользователь для магазина.
+
+        UUID фиксирован — используется в DemoResetService для очистки данных.
+        password_hash = bcrypt("demo") для возможности входа через обычную форму,
+        но основной сценарий — кнопка «Демо» которая логинит без пароля.
+
+        crm_tenant_schema = 'tenant_demo' — проставлен сразу, без ожидания
+        Kafka-события, так как оба демо-тенанта создаются одновременно.
+
+        user_balances создаётся сразу с щедрым балансом —
+        после сброса баланс тоже восстанавливается до исходного.
+    -->
+
+    <changeSet id="V011-1" author="shop">
+        <comment>Demo user for shop demo mode</comment>
+        <sql splitStatements="false">
+            INSERT INTO users (
+                id,
+                email,
+                password_hash,
+                first_name,
+                last_name,
+                is_active,
+                crm_tenant_schema
+            ) VALUES (
+                'dddddddd-0000-0000-0000-000000000001',
+                'demo@shop.local',
+                -- bcrypt hash строки "demo" (cost=10)
+                '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+                'Демо',
+                'Покупатель',
+                true,
+                'tenant_demo'
+            ) ON CONFLICT DO NOTHING;
+        </sql>
+        <rollback>
+            <sql>DELETE FROM users WHERE id = 'dddddddd-0000-0000-0000-000000000001';</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="V011-2" author="shop">
+        <comment>Demo user balance — 1 000 000 руб., сбрасывается вместе с данными каждую ночь</comment>
+        <sql splitStatements="false">
+            INSERT INTO user_balances (user_id, balance)
+            VALUES ('dddddddd-0000-0000-0000-000000000001', 1000000.00)
+            ON CONFLICT DO NOTHING;
+        </sql>
+        <rollback>
+            <sql>DELETE FROM user_balances WHERE user_id = 'dddddddd-0000-0000-0000-000000000001';</sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

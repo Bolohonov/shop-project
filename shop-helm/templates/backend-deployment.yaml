@@ -51,6 +51,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-secrets
                   key: jwt-secret
+            - name: INTERNAL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: internal-token
             - name: FRONTEND_URL
               value: {{ .Values.backend.env.FRONTEND_URL | quote }}
             - name: APP_BASE_URL

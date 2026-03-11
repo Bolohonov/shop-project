@@ -108,6 +108,9 @@ app:
     access-token-expiration: 900       # 15 минут
     refresh-token-expiration: 604800   # 7 дней
 
+  # Токен для внутренних endpoint-ов (demo reset)
+  internal-token: ${INTERNAL_TOKEN:change-me-internal-token}
+
   email:
     from: ${MAIL_FROM:noreply@shop.local}
     from-name: "Online Shop"

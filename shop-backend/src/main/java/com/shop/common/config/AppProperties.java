@@ -13,6 +13,7 @@ import java.util.List;
 public class AppProperties {
     private String baseUrl;
     private String frontendUrl;
+    private String internalToken;
     private Jwt jwt = new Jwt();
     private Email email = new Email();
     private Cors cors = new Cors();
