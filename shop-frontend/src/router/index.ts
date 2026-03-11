@@ -16,7 +16,7 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
-  if (!auth.user && localStorage.getItem('accessToken')) await auth.init()
+  if (!auth.user && localStorage.getItem('shop_accessToken')) await auth.init()
   if (to.meta.auth && !auth.isAuthenticated) return { name: 'login', query: { redirect: to.fullPath } }
 })
 

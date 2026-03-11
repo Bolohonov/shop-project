@@ -5,7 +5,7 @@ export function useSse() {
   let eventSource: EventSource | null = null
 
   function connect(onStatusChanged: (data: any) => void) {
-    const token = localStorage.getItem('accessToken')
+    const token = localStorage.getItem('shop_accessToken')
     if (!token) return
 
     const url = '/shop/api/v1/events/subscribe?token=' + token
