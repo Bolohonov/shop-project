@@ -88,7 +88,7 @@ async function handleDemoLogin() {
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
         </svg>
         {{ demoLoading ? 'Загрузка...' : 'Попробовать демо' }}
-        <span class="text-gray-400 font-normal text-xs">· данные сбрасываются каждую ночь</span>
+        <span class="text-gray-400 font-normal text-xs">· данные сбрасываются раз в сутки</span>
       </button>
 
       <p class="text-center text-sm text-gray-500 mt-6">
