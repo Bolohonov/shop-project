@@ -39,7 +39,7 @@ public class DemoResetController {
         if (expected == null || expected.isBlank() || !expected.equals(token)) {
             log.warn("Shop demo reset rejected: invalid or missing X-Internal-Token");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.error("UNAUTHORIZED", "Invalid token"));
+                    .body(ApiResponse.error("Invalid token"));
         }
 
         log.info("Shop demo reset triggered via internal endpoint");
