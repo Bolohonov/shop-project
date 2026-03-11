@@ -1,6 +1,7 @@
 # 🛒 IT Shop — Интернет-магазин ИТ-услуг и оборудования
 
 Микросервисный e-commerce проект, интегрированный с CRM-системой через Apache Kafka.
+**Live demo:** [bolohonovma.online/shop](https://bolohonovma.online/shop)
 
 ## Архитектура
 
