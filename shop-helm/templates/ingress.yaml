@@ -8,6 +8,16 @@ spec:
   entryPoints:
     - web
   routes:
+    # SSE: отдельный роут без буферизации (должен быть выше общего /api)
+    - match: Host(`{{ .Values.ingress.host }}`) && PathPrefix(`{{ .Values.ingress.basePath }}/api/v1/events`)
+      kind: Rule
+      middlewares:
+        - name: {{ .Release.Name }}-strip
+        - name: {{ .Release.Name }}-sse
+      services:
+        - name: {{ .Release.Name }}-backend
+          port: {{ .Values.backend.service.port }}
+
     # Backend API: /shop/api/v1/* -> strip /shop -> backend gets /api/v1/*
     - match: Host(`{{ .Values.ingress.host }}`) && PathPrefix(`{{ .Values.ingress.basePath }}/api`)
       kind: Rule
@@ -17,10 +27,7 @@ spec:
         - name: {{ .Release.Name }}-backend
           port: {{ .Values.backend.service.port }}
 
-    # SSE events: /shop/api/v1/events/* -> same as API
-    # (covered by the /shop/api rule above)
-
-    # Frontend: /shop/* -> strip /shop -> frontend gets /*
+    # Frontend: /shop/* -> frontend serves SPA
     - match: Host(`{{ .Values.ingress.host }}`) && PathPrefix(`{{ .Values.ingress.basePath }}`)
       kind: Rule
       services:
